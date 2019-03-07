@@ -680,7 +680,6 @@ class InlineInterestingLinkProcessor(markdown.treeprocessors.Treeprocessor):
             return title
         return None
 
-
     def vimeo_id(self, url: str) -> Optional[str]:
         if not self.markdown.image_preview_enabled:
             return None
