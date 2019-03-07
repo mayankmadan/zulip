@@ -673,6 +673,14 @@ class InlineInterestingLinkProcessor(markdown.treeprocessors.Treeprocessor):
             return "https://i.ytimg.com/vi/%s/default.jpg" % (yt_id,)
         return None
 
+    def youtube_title(self, url: str) -> Optional[str]:
+        req = requests.get("https://www.youtube.com/oembed?url=%s&format=json" % (url,), timeout=1)
+        title = ujson.loads(req.text)['title']
+        if title is not None:
+            return title
+        return None
+
+
     def vimeo_id(self, url: str) -> Optional[str]:
         if not self.markdown.image_preview_enabled:
             return None
@@ -998,9 +1006,12 @@ class InlineInterestingLinkProcessor(markdown.treeprocessors.Treeprocessor):
             youtube = self.youtube_image(url)
             if youtube is not None:
                 yt_id = self.youtube_id(url)
-                add_a(root, youtube, url, None, None,
+                yt_title = self.youtube_title(url)
+                add_a(root, youtube, url, yt_title, None,
                       "youtube-video message_inline_image",
                       yt_id, already_thumbnailed=True)
+                if yt_title is not None:
+                    found_url.family.child.text = yt_title
                 continue
 
             db_data = self.markdown.zulip_db_data
